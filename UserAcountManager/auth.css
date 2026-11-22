@@ -1,0 +1,638 @@
+/* ==========================================================
+   AereoLink — Inicio de sesión y registro
+   Requiere styles.css (variables, header y base) cargado antes.
+   ========================================================== */
+
+.auth-main {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 48px;
+}
+
+.auth-container {
+    --auth-field-h: 60px;
+    --danger: #c8372d;
+
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    width: min(100%, 1060px);
+    min-height: 640px;
+    overflow: hidden;
+    background: var(--white);
+    border-radius: 20px;
+    box-shadow: var(--shadow-card);
+}
+
+
+/* ==========================================================
+   PANEL DE MARCA
+   ========================================================== */
+
+.auth-brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 36px;
+    padding: 48px 40px;
+    overflow: hidden;
+    color: var(--white);
+    background:
+        radial-gradient(circle at 100% 0%, rgba(77, 149, 245, 0.45), transparent 55%),
+        linear-gradient(160deg, var(--navy-900) 0%, var(--navy-800) 45%, var(--blue-600) 100%);
+}
+
+.auth-brand-icon {
+    position: absolute;
+    right: -50px;
+    bottom: -40px;
+    font-size: 280px;
+    color: rgba(255, 255, 255, 0.06);
+    transform: rotate(-28deg);
+    pointer-events: none;
+}
+
+.auth-brand-content,
+.auth-benefits {
+    position: relative;
+    z-index: 1;
+}
+
+.auth-brand-tag {
+    display: inline-block;
+    padding: 6px 14px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+}
+
+.auth-brand-title {
+    margin-bottom: 14px;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.6px;
+}
+
+.auth-brand-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.auth-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.auth-benefit {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.auth-benefit-icon {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+    color: var(--blue-400);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+}
+
+.auth-benefit-title {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.auth-benefit-detail {
+    margin-top: 2px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+
+/* ==========================================================
+   PANEL DE FORMULARIOS
+   ========================================================== */
+
+.auth-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 0;
+    padding: 36px 44px 40px;
+}
+
+/* ---------- Pestañas ---------- */
+
+.auth-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 5px;
+    background: var(--sky-50);
+    border: 1px solid var(--sky-100);
+    border-radius: 14px;
+}
+
+.auth-tab {
+    flex: 1;
+    height: 44px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--muted);
+    background: transparent;
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.auth-tab:hover {
+    color: var(--blue-700);
+}
+
+.auth-tab.active {
+    color: var(--blue-700);
+    background: var(--white);
+    box-shadow: 0 2px 8px rgba(6, 23, 51, 0.12);
+}
+
+/* ---------- Formularios ---------- */
+
+.auth-form {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.auth-form.active {
+    display: flex;
+    animation: authFadeIn 0.35s var(--ease);
+}
+
+@keyframes authFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-header {
+    margin-bottom: 4px;
+}
+
+.form-title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    color: var(--navy-800);
+}
+
+.form-subtitle {
+    margin-top: 6px;
+    font-size: 15px;
+    color: var(--muted);
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.document-row {
+    grid-template-columns: 0.95fr 1.05fr;
+}
+
+
+/* ==========================================================
+   CAMPOS CON ETIQUETA FLOTANTE
+   (los inputs llevan placeholder=" " para detectarlo con CSS)
+   ========================================================== */
+
+.field-container {
+    position: relative;
+    min-width: 0;
+}
+
+.field-input {
+    width: 100%;
+    height: var(--auth-field-h);
+    padding: 24px 16px 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    color-scheme: light;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    outline: none;
+    transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.field-input:hover {
+    border-color: var(--line-strong);
+}
+
+.field-input:focus {
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(34, 114, 234, 0.18);
+}
+
+.field-label {
+    position: absolute;
+    top: calc(var(--auth-field-h) / 2);
+    left: 17px;
+    z-index: 1;
+    max-width: calc(100% - 34px);
+    overflow: hidden;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    transform: translateY(-50%);
+    transition:
+        top 0.18s var(--ease),
+        transform 0.18s var(--ease),
+        font-size 0.18s var(--ease),
+        color 0.18s var(--ease);
+}
+
+/* Etiqueta arriba: enfocado, con texto, autocompletado, select y fecha */
+.field-input:focus + .field-label,
+.field-input:not(:placeholder-shown) + .field-label,
+.field-input:-webkit-autofill + .field-label,
+select.field-input + .field-label,
+.field-input[type="date"] + .field-label {
+    top: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    transform: translateY(0);
+}
+
+.field-input:focus + .field-label {
+    color: var(--blue-600);
+}
+
+/* Select */
+select.field-input {
+    padding-right: 40px;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231558c9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Fecha */
+.field-input[type="date"] {
+    cursor: pointer;
+}
+
+.field-input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.55;
+    transition: opacity 0.2s var(--ease);
+}
+
+.field-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* Contraseña + ojo */
+.password-container .field-input {
+    padding-right: 52px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: calc(var(--auth-field-h) / 2);
+    right: 8px;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    color: var(--muted);
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: color 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.password-toggle:hover {
+    color: var(--blue-600);
+    background: var(--sky-100);
+}
+
+.password-hint {
+    margin-top: -6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* Errores (para activar desde JS con .has-error) */
+.field-error {
+    display: none;
+    margin: 6px 4px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--danger);
+}
+
+.field-container.has-error .field-input {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(200, 55, 45, 0.12);
+}
+
+.field-container.has-error .field-label {
+    color: var(--danger);
+}
+
+.field-container.has-error .field-error {
+    display: block;
+}
+
+
+/* ==========================================================
+   OPCIONES, CHECKBOX Y ENLACES
+   ========================================================== */
+
+.form-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.checkbox-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.checkbox-input {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    margin: 1px 0 0;
+    display: grid;
+    place-items: center;
+    background: var(--white);
+    border: 1.5px solid var(--line-strong);
+    border-radius: 6px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: background 0.15s var(--ease), border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.checkbox-input::after {
+    content: "";
+    width: 5px;
+    height: 10px;
+    margin-top: -2px;
+    border: solid var(--white);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg) scale(0);
+    transition: transform 0.15s var(--ease);
+}
+
+.checkbox-input:checked {
+    background: var(--blue-600);
+    border-color: var(--blue-600);
+}
+
+.checkbox-input:checked::after {
+    transform: rotate(45deg) scale(1);
+}
+
+.checkbox-input:focus-visible {
+    box-shadow: 0 0 0 3px rgba(34, 114, 234, 0.25);
+}
+
+.checkbox-text {
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--ink);
+}
+
+.form-link {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue-600);
+    text-decoration: none;
+    transition: color 0.2s var(--ease);
+}
+
+.form-link:hover {
+    color: var(--blue-700);
+    text-decoration: underline;
+}
+
+.terms-option .form-link {
+    font-size: inherit;
+}
+
+
+/* ==========================================================
+   BOTONES
+   ========================================================== */
+
+.submit-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 54px;
+    margin-top: 4px;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    color: var(--white);
+    background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-700) 100%);
+    border: 0;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 22px -8px rgba(21, 88, 201, 0.7);
+    cursor: pointer;
+    transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), filter 0.2s var(--ease);
+}
+
+.submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px -8px rgba(21, 88, 201, 0.8);
+    filter: brightness(1.06);
+}
+
+.submit-button:active {
+    transform: translateY(0);
+}
+
+.form-divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 2px 0;
+}
+
+.form-divider::before,
+.form-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--sky-100);
+}
+
+.form-divider-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.social-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.social-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 50px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color 0.2s var(--ease), background 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+.social-button i {
+    font-size: 18px;
+}
+
+.social-button:hover {
+    color: var(--blue-700);
+    background: var(--sky-50);
+    border-color: var(--blue-500);
+}
+
+.form-switch-text {
+    margin-top: 2px;
+    font-size: 14px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.form-switch-link {
+    padding: 0;
+    margin-left: 4px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--blue-600);
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+.form-switch-link:hover {
+    color: var(--blue-700);
+    text-decoration: underline;
+}
+
+/* Foco visible con teclado */
+.auth-tab:focus-visible,
+.submit-button:focus-visible,
+.social-button:focus-visible,
+.form-switch-link:focus-visible,
+.password-toggle:focus-visible,
+.form-link:focus-visible {
+    outline: 3px solid rgba(34, 114, 234, 0.35);
+    outline-offset: 2px;
+}
+
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+@media (max-width: 900px) {
+    .auth-container {
+        grid-template-columns: 1fr;
+        min-height: 0;
+    }
+
+    .auth-brand {
+        gap: 0;
+        padding: 32px 32px 30px;
+    }
+
+    .auth-benefits,
+    .auth-brand-icon {
+        display: none;
+    }
+
+    .auth-brand-title {
+        font-size: 26px;
+    }
+
+    .auth-panel {
+        padding: 30px 32px 36px;
+    }
+}
+
+@media (max-width: 560px) {
+    .auth-main {
+        padding-top: 28px;
+    }
+
+    .auth-brand {
+        padding: 26px 22px;
+    }
+
+    .auth-panel {
+        padding: 24px 20px 30px;
+    }
+
+    .field-row,
+    .document-row {
+        grid-template-columns: 1fr;
+    }
+
+    .form-options {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .social-buttons {
+        grid-template-columns: 1fr;
+    }
+}

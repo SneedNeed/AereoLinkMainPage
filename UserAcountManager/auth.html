@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <title>AereoLink - Acceso</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://kit.fontawesome.com/6ed9f78524.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="../style.css">
+        <link rel="stylesheet" href="auth.css">
+    </head>
+    <body>
+        <header class="header">
+            <div class="mainLogue">
+                <img src="" class="mainLogue-img">
+                <h1 class="main-title">AereoLink</h1>
+            </div>
+            <div class="headerOptions">
+                <div class="header-option support-option">
+                    <i class="fa-solid fa-headphones"></i>
+                    <p class="header-option-text">Soporte 123 4567 89</p>
+                </div>
+                <div class="header-option home-option">
+                    <i class="fa-solid fa-house"></i>
+                    <a href="../index.html" class="header-option-text home-button">Inicio</a>
+                </div>
+            </div>
+        </header>
+
+        <main class="main auth-main">
+            <div class="auth-container">
+
+                <!-- Panel de marca (decorativo / informativo) -->
+                <section class="auth-brand">
+                    <i class="fa-solid fa-plane auth-brand-icon"></i>
+                    <div class="auth-brand-content">
+                        <p class="auth-brand-tag">Bienvenido a AereoLink</p>
+                        <h2 class="auth-brand-title">Tu próximo vuelo empieza aquí</h2>
+                        <p class="auth-brand-text">Una sola cuenta para comparar aerolíneas, reservar con tranquilidad y llevar el control de tus viajes.</p>
+                    </div>
+                    <div class="auth-benefits">
+                        <div class="auth-benefit">
+                            <div class="auth-benefit-icon">
+                                <i class="fa-solid fa-tags"></i>
+                            </div>
+                            <div class="auth-benefit-text">
+                                <p class="auth-benefit-title">Las mejores tarifas</p>
+                                <p class="auth-benefit-detail">Compara varias aerolíneas en un solo lugar.</p>
+                            </div>
+                        </div>
+                        <div class="auth-benefit">
+                            <div class="auth-benefit-icon">
+                                <i class="fa-solid fa-shield-halved"></i>
+                            </div>
+                            <div class="auth-benefit-text">
+                                <p class="auth-benefit-title">Compra segura</p>
+                                <p class="auth-benefit-detail">Tus datos personales y de pago, protegidos.</p>
+                            </div>
+                        </div>
+                        <div class="auth-benefit">
+                            <div class="auth-benefit-icon">
+                                <i class="fa-solid fa-plane-departure"></i>
+                            </div>
+                            <div class="auth-benefit-text">
+                                <p class="auth-benefit-title">Historial de vuelos</p>
+                                <p class="auth-benefit-detail">Consulta tus reservas cuando lo necesites.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Panel de formularios -->
+                <section class="auth-panel">
+                    <div class="auth-tabs">
+                        <button type="button" class="auth-tab login-tab active">Iniciar sesión</button>
+                        <button type="button" class="auth-tab register-tab">Crear cuenta</button>
+                    </div>
+
+                    <!-- ========== INICIAR SESIÓN ========== -->
+                    <form class="auth-form login-form active">
+                        <div class="form-header">
+                            <h2 class="form-title">Bienvenido de nuevo</h2>
+                            <p class="form-subtitle">Ingresa tus datos para acceder a tu cuenta.</p>
+                        </div>
+
+                        <div class="field-container email-container">
+                            <input class="field-input input" type="email" id="loginEmail" name="email" placeholder=" " autocomplete="email" required>
+                            <label class="label field-label" for="loginEmail">Correo electrónico</label>
+                            <p class="field-error"></p>
+                        </div>
+
+                        <div class="field-container password-container">
+                            <input class="field-input input" type="password" id="loginPassword" name="password" placeholder=" " autocomplete="current-password" required>
+                            <label class="label field-label" for="loginPassword">Contraseña</label>
+                            <button type="button" class="password-toggle" aria-label="Mostrar u ocultar contraseña">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                            <p class="field-error"></p>
+                        </div>
+
+                        <div class="form-options">
+                            <label class="checkbox-option remember-option">
+                                <input class="checkbox-input" type="checkbox" name="remember">
+                                <span class="checkbox-text">Recordarme</span>
+                            </label>
+                            <a href="#" class="form-link forgot-link">¿Olvidaste tu contraseña?</a>
+                        </div>
+
+                        <button type="submit" class="submit-button login-button">Iniciar sesión</button>
+
+                        <!--div class="form-divider">
+                            <span class="form-divider-text">o continúa con</span>
+                        </div>
+
+                        <div class="social-buttons">
+                            <button type="button" class="social-button google-button">
+                                <i class="fa-brands fa-google"></i>
+                                <span class="social-button-text">Google</span>
+                            </button>
+                            <button type="button" class="social-button apple-button">
+                                <i class="fa-brands fa-apple"></i>
+                                <span class="social-button-text">Apple</span>
+                            </button>
+                        </div-->
+
+                        <p class="form-switch-text">
+                            ¿Aún no tienes cuenta?
+                            <button type="button" class="form-switch-link to-register-link">Regístrate</button>
+                        </p>
+                    </form>
+
+                    <!-- ========== CREAR CUENTA ========== -->
+                    <form class="auth-form register-form">
+                        <div class="form-header">
+                            <h2 class="form-title">Crea tu cuenta</h2>
+                            <p class="form-subtitle">Completa tus datos para empezar a reservar.</p>
+                        </div>
+
+                        <div class="field-row names-row">
+                            <div class="field-container name-container">
+                                <input class="field-input input" type="text" id="registerName" name="name" placeholder=" " autocomplete="given-name" required>
+                                <label class="label field-label" for="registerName">Nombres</label>
+                                <p class="field-error"></p>
+                            </div>
+                            <div class="field-container lastname-container">
+                                <input class="field-input input" type="text" id="registerLastname" name="lastname" placeholder=" " autocomplete="family-name" required>
+                                <label class="label field-label" for="registerLastname">Apellidos</label>
+                                <p class="field-error"></p>
+                            </div>
+                        </div>
+
+                        <div class="field-row document-row">
+                            <div class="field-container documentType-container">
+                                <select class="field-input input" id="registerDocumentType" name="documentType" required>
+                                    <option value="CC">Cédula de ciudadanía</option>
+                                    <option value="CE">Cédula de extranjería</option>
+                                    <option value="PA">Pasaporte</option>
+                                </select>
+                                <label class="label field-label" for="registerDocumentType">Tipo de documento</label>
+                                <p class="field-error"></p>
+                            </div>
+                            <div class="field-container documentNumber-container">
+                                <input class="field-input input" type="text" id="registerDocumentNumber" name="documentNumber" placeholder=" " inputmode="numeric" required>
+                                <label class="label field-label" for="registerDocumentNumber">Número de documento</label>
+                                <p class="field-error"></p>
+                            </div>
+                        </div>
+
+                        <div class="field-row personal-row">
+                            <div class="field-container birthdate-container">
+                                <input class="field-input input" type="date" id="registerBirthdate" name="birthdate" required>
+                                <label class="label field-label" for="registerBirthdate">Fecha de nacimiento</label>
+                                <p class="field-error"></p>
+                            </div>
+                            <div class="field-container phone-container">
+                                <input class="field-input input" type="tel" id="registerPhone" name="phone" placeholder=" " autocomplete="tel" required>
+                                <label class="label field-label" for="registerPhone">Teléfono</label>
+                                <p class="field-error"></p>
+                            </div>
+                        </div>
+
+                        <div class="field-container email-container">
+                            <input class="field-input input" type="email" id="registerEmail" name="email" placeholder=" " autocomplete="email" required>
+                            <label class="label field-label" for="registerEmail">Correo electrónico</label>
+                            <p class="field-error"></p>
+                        </div>
+
+                        <div class="field-row password-row">
+                            <div class="field-container password-container">
+                                <input class="field-input input" type="password" id="registerPassword" name="password" placeholder=" " autocomplete="new-password" required>
+                                <label class="label field-label" for="registerPassword">Contraseña</label>
+                                <button type="button" class="password-toggle" aria-label="Mostrar u ocultar contraseña">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                                <p class="field-error"></p>
+                            </div>
+                            <div class="field-container password-container">
+                                <input class="field-input input" type="password" id="registerPasswordConfirm" name="passwordConfirm" placeholder=" " autocomplete="new-password" required>
+                                <label class="label field-label" for="registerPasswordConfirm">Confirmar contraseña</label>
+                                <button type="button" class="password-toggle" aria-label="Mostrar u ocultar contraseña">
+                                    <i class="fa-regular fa-eye"></i>
+                                </button>
+                                <p class="field-error"></p>
+                            </div>
+                        </div>
+                        <p class="password-hint">Mínimo 8 caracteres, combinando letras y números.</p>
+
+                        <label class="checkbox-option terms-option">
+                            <input class="checkbox-input" type="checkbox" name="terms" required>
+                            <span class="checkbox-text">
+                                Acepto los <a href="#" class="form-link">Términos y condiciones</a> y la <a href="#" class="form-link">Política de privacidad</a>.
+                            </span>
+                        </label>
+
+                        <button type="submit" class="submit-button register-button">Crear cuenta</button>
+
+                        <p class="form-switch-text">
+                            ¿Ya tienes una cuenta?
+                            <button type="button" class="form-switch-link to-login-link">Inicia sesión</button>
+                        </p>
+                    </form>
+                </section>
+
+            </div>
+        </main>
+        <script src="auth.js"></script>
+    </body>
+</html>

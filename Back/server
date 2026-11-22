@@ -1,0 +1,310 @@
+const express = require('express');
+const cors = require('cors');
+const crypto = require('crypto');
+const pool = require('./db');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Catálogo de aeropuertos y ciudades para llenar <select> o buscadores en el front
+app.get('/api/catalogo/aeropuertos', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT
+        a.codigo_iata,
+        a.nombre AS nombre_aeropuerto,
+        c.nombre AS ciudad,
+        c.region,
+        c.pais,
+        c.codigo_pais
+      FROM aeropuerto a
+      JOIN ciudad c ON c.id_ciudad = a.id_ciudad
+      ORDER BY c.pais, c.nombre, a.codigo_iata
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error cargando catálogo de aeropuertos' });
+  }
+});
+
+// Buscar vuelos y tarifas (NO requiere registro; guarda historial_busqueda)
+app.get('/api/vuelos/buscar', async (req, res) => {
+  const {
+    origen,
+    destino,
+    fecha_ida,
+    fecha_regreso = null,
+    escalas_maximas = null,
+    pasajeros = 1,
+    id_cliente = null,
+  } = req.query;
+
+  const aeroOrigen = (origen || '').trim().toUpperCase();
+  const aeroDestino = (destino || '').trim().toUpperCase();
+  const numPax = Number(pasajeros) || 1;
+  const maxEscalas =
+    escalas_maximas !== null && escalas_maximas !== ''
+      ? Number(escalas_maximas)
+      : null;
+
+  if (!aeroOrigen || !aeroDestino || !fecha_ida) {
+    return res.status(400).json({ error: 'Faltan origen, destino o fecha_ida' });
+  }
+
+  if (aeroOrigen === aeroDestino) {
+    return res.status(400).json({ error: 'Origen y destino deben ser diferentes' });
+  }
+
+  try {
+    await pool.query(
+      `INSERT INTO historial_busqueda (
+         id_cliente, aeropuerto_origen, aeropuerto_destino,
+         fecha_ida, fecha_regreso, escalas_maximas, cantidad_pasajeros
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        id_cliente ? Number(id_cliente) : null,
+        aeroOrigen,
+        aeroDestino,
+        fecha_ida,
+        fecha_regreso || null,
+        maxEscalas,
+        numPax,
+      ]
+    );
+
+    const { rows } = await pool.query(
+      `SELECT
+         v.id_vuelo,
+         v.codigo_vuelo,
+         al.nombre AS aerolinea,
+         v.aeropuerto_origen,
+         v.aeropuerto_destino,
+         v.fecha_salida,
+         v.fecha_llegada,
+         v.cantidad_escalas,
+         v.cupos_disponibles,
+         v.precio_base,
+         COALESCE(
+           json_agg(
+             json_build_object(
+               'id_tarifa', t.id_tarifa,
+               'clase_cabina', t.clase_cabina,
+               'nombre_tarifa', t.nombre_tarifa,
+               'precio_tarifa', t.precio_tarifa,
+               'equipaje_mano_kg', t.equipaje_mano_kg,
+               'equipaje_bodega_kg', t.equipaje_bodega_kg,
+               'cupos_tarifa', t.cupos_tarifa
+             ) ORDER BY t.precio_tarifa ASC
+           ) FILTER (WHERE t.id_tarifa IS NOT NULL),
+           '[]'::json
+         ) AS tarifas
+       FROM vuelo v
+       JOIN aerolinea al ON al.id_aerolinea = v.id_aerolinea
+       LEFT JOIN tarifa t ON t.id_vuelo = v.id_vuelo AND t.cupos_tarifa >= $3
+       WHERE v.aeropuerto_origen = $1
+         AND v.aeropuerto_destino = $2
+         AND v.fecha_salida::date = $4::date
+         AND v.estado = 'PROGRAMADO'
+         AND v.cupos_disponibles >= $3
+         AND ($5::int IS NULL OR v.cantidad_escalas <= $5)
+       GROUP BY v.id_vuelo, al.nombre
+       ORDER BY v.fecha_salida ASC`,
+      [aeroOrigen, aeroDestino, numPax, fecha_ida, maxEscalas]
+    );
+
+    res.json({ vuelos: rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error consultando vuelos' });
+  }
+});
+
+// Crear reserva (AQUÍ se registran cliente, pasajeros, detalle_reserva y pago)
+app.post('/api/reservas', async (req, res) => {
+  const { cliente, pasajeros, detalles, metodo_pago, observaciones = null } = req.body;
+
+  if (!cliente || !Array.isArray(pasajeros) || !pasajeros.length || !Array.isArray(detalles) || !detalles.length) {
+    return res.status(400).json({
+      error: 'Se requieren datos de cliente, pasajeros y tarifas seleccionadas para reservar',
+    });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // 1. Cliente (reutiliza si ya existe por documento o correo; si no, lo crea)
+    let idCliente;
+    const cliExist = await client.query(
+      `SELECT id_cliente FROM cliente WHERE numero_documento = $1 OR correo = $2`,
+      [cliente.numero_documento.trim(), cliente.correo.trim().toLowerCase()]
+    );
+
+    if (cliExist.rows.length > 0) {
+      idCliente = cliExist.rows[0].id_cliente;
+    } else {
+      const cliIns = await client.query(
+        `INSERT INTO cliente (
+           tipo_documento, numero_documento, nombre_completo,
+           correo, telefono, fecha_nacimiento
+         )
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING id_cliente`,
+        [
+          cliente.tipo_documento,
+          cliente.numero_documento.trim(),
+          cliente.nombre_completo.trim(),
+          cliente.correo.trim().toLowerCase(),
+          cliente.telefono.trim(),
+          cliente.fecha_nacimiento,
+        ]
+      );
+      idCliente = cliIns.rows[0].id_cliente;
+    }
+
+    // 2. Pasajeros
+    const idsPasajerosPorIndice = [];
+    for (const pax of pasajeros) {
+      const paxExist = await client.query(
+        `SELECT id_pasajero FROM pasajero
+         WHERE id_cliente = $1 AND tipo_documento = $2 AND numero_documento = $3`,
+        [idCliente, pax.tipo_documento, pax.numero_documento.trim()]
+      );
+
+      let idPax;
+      if (paxExist.rows.length > 0) {
+        idPax = paxExist.rows[0].id_pasajero;
+      } else {
+        const paxIns = await client.query(
+          `INSERT INTO pasajero (
+             id_cliente, tipo_documento, numero_documento,
+             nombre_completo, fecha_nacimiento, nacionalidad
+           )
+           VALUES ($1, $2, $3, $4, $5, $6)
+           RETURNING id_pasajero`,
+          [
+            idCliente,
+            pax.tipo_documento,
+            pax.numero_documento.trim(),
+            pax.nombre_completo.trim(),
+            pax.fecha_nacimiento,
+            pax.nacionalidad.trim(),
+          ]
+        );
+        idPax = paxIns.rows[0].id_pasajero;
+      }
+      idsPasajerosPorIndice.push(idPax);
+    }
+
+    // 3. Reserva
+    const codigoReserva = `AER-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+    const resIns = await client.query(
+      `INSERT INTO reserva (codigo_reserva, id_cliente, estado_reserva, monto_total, observaciones)
+       VALUES ($1, $2, 'PENDIENTE', 0, $3)
+       RETURNING id_reserva, codigo_reserva`,
+      [codigoReserva, idCliente, observaciones]
+    );
+    const idReserva = resIns.rows[0].id_reserva;
+
+    let montoTotal = 0;
+
+    // 4. Detalles y descuento de cupos
+    for (let i = 0; i < detalles.length; i++) {
+      const det = detalles[i];
+      const idPasajero = det.id_pasajero || idsPasajerosPorIndice[i] || idsPasajerosPorIndice[0];
+
+      const tarifaRes = await client.query(
+        `SELECT t.id_tarifa, t.id_vuelo, t.precio_tarifa, t.cupos_tarifa, v.cupos_disponibles
+         FROM tarifa t
+         JOIN vuelo v ON v.id_vuelo = t.id_vuelo
+         WHERE t.id_tarifa = $1
+         FOR UPDATE`,
+        [Number(det.id_tarifa)]
+      );
+
+      if (!tarifaRes.rows.length) {
+        throw new Error(`Tarifa ${det.id_tarifa} no encontrada`);
+      }
+
+      const tData = tarifaRes.rows[0];
+      if (tData.cupos_tarifa < 1 || tData.cupos_disponibles < 1) {
+        throw new Error(`Sin cupos disponibles en la tarifa ${det.id_tarifa}`);
+      }
+
+      const precioUnit = Number(tData.precio_tarifa);
+      montoTotal += precioUnit;
+
+      await client.query(
+        `UPDATE tarifa SET cupos_tarifa = cupos_tarifa - 1 WHERE id_tarifa = $1`,
+        [tData.id_tarifa]
+      );
+      await client.query(
+        `UPDATE vuelo SET cupos_disponibles = cupos_disponibles - 1 WHERE id_vuelo = $1`,
+        [tData.id_vuelo]
+      );
+
+      await client.query(
+        `INSERT INTO detalle_reserva (
+           id_reserva, id_tarifa, id_pasajero, asiento_asignado,
+           peso_equipaje_kg, descripcion_equipaje, precio_pagado
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          idReserva,
+          tData.id_tarifa,
+          idPasajero,
+          det.asiento_asignado || null,
+          Number(det.peso_equipaje_kg || 0),
+          det.descripcion_equipaje || null,
+          precioUnit,
+        ]
+      );
+    }
+
+    await client.query(
+      `UPDATE reserva SET monto_total = $1 WHERE id_reserva = $2`,
+      [montoTotal.toFixed(2), idReserva]
+    );
+
+    // 5. Pago (si se envía metodo_pago)
+    let pago = null;
+    if (metodo_pago) {
+      const ref = `TXN-${Date.now()}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
+      const pagoIns = await client.query(
+        `INSERT INTO pago (id_reserva, metodo_pago, monto_pagado, estado_pago, referencia_transaccion)
+         VALUES ($1, $2, $3, 'APROBADO', $4)
+         RETURNING id_pago, metodo_pago, monto_pagado, estado_pago, referencia_transaccion`,
+        [idReserva, metodo_pago, montoTotal.toFixed(2), ref]
+      );
+      pago = pagoIns.rows[0];
+
+      await client.query(
+        `UPDATE reserva SET estado_reserva = 'CONFIRMADA' WHERE id_reserva = $1`,
+        [idReserva]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      id_reserva: idReserva,
+      codigo_reserva: codigoReserva,
+      monto_total: Number(montoTotal.toFixed(2)),
+      estado_reserva: metodo_pago ? 'CONFIRMADA' : 'PENDIENTE',
+      pago,
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(err);
+    res.status(400).json({ error: err.message || 'Error al crear la reserva' });
+  } finally {
+    client.release();
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Backend AeroLink en http://localhost:${PORT}`));
